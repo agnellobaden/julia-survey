@@ -34,3 +34,5 @@ next-env.d.ts
 
 # survey data (local storage)
 /data
+
+.vercel
