@@ -32,10 +32,14 @@ export default function Home() {
       <Survey />
       
       <footer className="max-w-3xl mx-auto text-center py-20 border-t border-white/5 mt-20">
-        <p className="text-white/30 text-sm">
+        <p className="text-white/30 text-sm mb-4">
           Erstellt für die Bachelorarbeit von Julia. <br />
           Alle Daten werden streng vertraulich und anonym behandelt.
         </p>
+        <div className="flex justify-center gap-6 text-xs text-white/40">
+          <a href="/impressum" className="hover:text-brand-400 transition-colors">Impressum</a>
+          <a href="/privacy" className="hover:text-brand-400 transition-colors">Datenschutz</a>
+        </div>
       </footer>
     </main>
   );
