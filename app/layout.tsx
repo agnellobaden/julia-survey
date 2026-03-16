@@ -28,6 +28,11 @@ export const metadata: Metadata = {
     description: 'Wissenschaftliche Umfrage im Rahmen einer Bachelorarbeit.',
     images: ['https://julia-survey.vercel.app/og-image.png'],
   },
+  icons: {
+    icon: '/favicon.png',
+    shortcut: '/favicon.png',
+    apple: '/favicon.png',
+  },
 };
 
 export default function RootLayout({

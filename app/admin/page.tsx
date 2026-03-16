@@ -4,12 +4,21 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { questions, categories } from '@/lib/questions';
 import { Download, Lock, LogIn, Users, Eye, BarChart3, Clock, CheckCircle, AlertCircle } from 'lucide-react';
-import { 
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
-  LineChart, Line, PieChart, Pie, Cell 
-} from 'recharts';
+import dynamic from 'next/dynamic';
+
+const BarChart = dynamic(() => import('recharts').then(mod => mod.BarChart), { ssr: false });
+const Bar = dynamic(() => import('recharts').then(mod => mod.Bar), { ssr: false });
+const XAxis = dynamic(() => import('recharts').then(mod => mod.XAxis), { ssr: false });
+const YAxis = dynamic(() => import('recharts').then(mod => mod.YAxis), { ssr: false });
+const CartesianGrid = dynamic(() => import('recharts').then(mod => mod.CartesianGrid), { ssr: false });
+const Tooltip = dynamic(() => import('recharts').then(mod => mod.Tooltip), { ssr: false });
+const ResponsiveContainer = dynamic(() => import('recharts').then(mod => mod.ResponsiveContainer), { ssr: false });
 
 export default function AdminPage() {
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
   const [responses, setResponses] = useState<any[]>([]);
   const [analytics, setAnalytics] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -127,15 +136,19 @@ export default function AdminPage() {
             <div className="glass-card">
               <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><Users className="w-5 h-5 text-brand-400" /> Trichter (Drop-off)</h3>
               <div className="h-[300px] w-full">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={dropOffData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
-                    <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={11} />
-                    <YAxis stroke="rgba(255,255,255,0.5)" />
-                    <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
-                    <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
-                  </BarChart>
-                </ResponsiveContainer>
+                {isClient ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={dropOffData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
+                      <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" fontSize={11} />
+                      <YAxis stroke="rgba(255,255,255,0.5)" />
+                      <Tooltip contentStyle={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px' }} />
+                      <Bar dataKey="count" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="h-full w-full animate-pulse bg-white/5 rounded-xl" />
+                )}
               </div>
               <p className="text-white/40 text-xs mt-4 italic text-center">Zeigt an, wie viele Nutzer jeden Schritt der Umfrage erreicht haben.</p>
             </div>
