@@ -8,6 +8,26 @@ const outfit = Outfit({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "Bachelor Umfrage | Elterliche Trennung",
   description: "Wissenschaftliche Umfrage im Rahmen einer Bachelorarbeit über die Auswirkungen elterlicher Trennung.",
+  openGraph: {
+    title: "Bachelor Umfrage | Elterliche Trennung",
+    description: "Nimm an meiner wissenschaftlichen Umfrage teil. Anonym & DSGVO-konform.",
+    images: [
+      {
+        url: 'https://julia-survey.vercel.app/og-image.png',
+        width: 1200,
+        height: 630,
+        alt: 'Bachelor Umfrage Vorschau',
+      },
+    ],
+    locale: 'de_DE',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Bachelor Umfrage | Elterliche Trennung',
+    description: 'Wissenschaftliche Umfrage im Rahmen einer Bachelorarbeit.',
+    images: ['https://julia-survey.vercel.app/og-image.png'],
+  },
 };
 
 export default function RootLayout({

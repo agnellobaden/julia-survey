@@ -15,6 +15,7 @@ export default function Survey() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [startTime] = useState(Date.now());
 
   // Load progress on mount
   useEffect(() => {
@@ -23,6 +24,16 @@ export default function Survey() {
       const { step: savedStep, answers: savedAnswers } = JSON.parse(savedProgress);
       setStep(savedStep);
       setAnswers(savedAnswers);
+    }
+    
+    // Track visit (if not already tracked in this session)
+    if (!sessionStorage.getItem('survey-visited')) {
+      fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'view' }),
+      });
+      sessionStorage.setItem('survey-visited', 'true');
     }
   }, []);
 
@@ -44,6 +55,13 @@ export default function Survey() {
 
   const nextStep = () => {
     if (step < categories.length - 1) {
+      // Track step completion
+      fetch('/api/analytics', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'step_reached', step: step + 1 }),
+      });
+      
       setStep(step + 1);
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
@@ -58,10 +76,19 @@ export default function Survey() {
 
   const handleSubmit = async () => {
     try {
+      const timeSpent = Math.round((Date.now() - startTime) / 1000);
       const response = await fetch('/api/survey', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(answers),
+        body: JSON.stringify({
+          answers,
+          metadata: {
+            timeSpent,
+            completedSteps: step + 1,
+            totalQuestions: questions.length,
+            answeredQuestions: Object.keys(answers).length
+          }
+        }),
       });
 
       if (response.ok) {
@@ -169,6 +196,7 @@ export default function Survey() {
                       <button
                         key={num}
                         onClick={() => handleInputChange(q.id, num)}
+                        type="button"
                         className={cn(
                           "w-10 h-10 rounded-xl flex items-center justify-center font-bold transition-all border",
                           answers[q.id] === num 
@@ -189,6 +217,7 @@ export default function Survey() {
             <button
               onClick={prevStep}
               disabled={step === 0}
+              type="button"
               className="flex items-center gap-2 px-6 py-3 rounded-full bg-white/5 hover:bg-white/10 text-white transition-all disabled:opacity-0"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -198,6 +227,7 @@ export default function Survey() {
             {step < categories.length - 1 ? (
               <button
                 onClick={nextStep}
+                type="button"
                 className="btn-primary flex items-center gap-2"
               >
                 Weiter
@@ -206,6 +236,7 @@ export default function Survey() {
             ) : (
               <button
                 onClick={handleSubmit}
+                type="button"
                 className="btn-primary bg-green-600 hover:bg-green-500 flex items-center gap-2"
               >
                 Umfrage absenden
