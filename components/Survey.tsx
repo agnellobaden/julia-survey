@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { categories, questions } from '@/lib/questions';
 import { ChevronRight, ChevronLeft, Send, CheckCircle2 } from 'lucide-react';
@@ -15,6 +15,25 @@ export default function Survey() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Record<string, any>>({});
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  // Load progress on mount
+  useEffect(() => {
+    const savedProgress = localStorage.getItem('survey-progress');
+    if (savedProgress) {
+      const { step: savedStep, answers: savedAnswers } = JSON.parse(savedProgress);
+      setStep(savedStep);
+      setAnswers(savedAnswers);
+    }
+  }, []);
+
+  // Auto-save progress whenever it changes
+  useEffect(() => {
+    if (!isSubmitted) {
+      localStorage.setItem('survey-progress', JSON.stringify({ step, answers }));
+    } else {
+      localStorage.removeItem('survey-progress');
+    }
+  }, [step, answers, isSubmitted]);
 
   const currentCategory = categories[step];
   const currentQuestions = questions.filter(q => q.category === currentCategory);

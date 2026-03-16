@@ -1,54 +1,48 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
-import path from 'path';
-
-const DATA_DIR = path.join(process.cwd(), 'data');
-const DATA_FILE = path.join(DATA_DIR, 'responses.json');
+import { supabase } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   try {
     const data = await request.json();
     
-    // Ensure directory exists
-    if (!fs.existsSync(DATA_DIR)) {
-      fs.mkdirSync(DATA_DIR);
-    }
+    // Insert response into Supabase table 'survey_responses'
+    const { error } = await supabase
+      .from('survey_responses')
+      .insert([
+        { 
+          responses: data,
+          submitted_at: new Date().toISOString()
+        }
+      ]);
 
-    // Read existing data
-    let responses = [];
-    if (fs.existsSync(DATA_FILE)) {
-      const fileData = fs.readFileSync(DATA_FILE, 'utf8');
-      responses = JSON.parse(fileData);
-    }
-
-    // Add timestamp and ID
-    const newResponse = {
-      id: Date.now().toString(),
-      submittedAt: new Date().toISOString(),
-      ...data
-    };
-
-    responses.push(newResponse);
-
-    // Write back
-    fs.writeFileSync(DATA_FILE, JSON.stringify(responses, null, 2));
+    if (error) throw error;
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error saving survey:', error);
+    console.error('Error saving survey to Supabase:', error);
     return NextResponse.json({ success: false, error: 'Failed to save survey' }, { status: 500 });
   }
 }
 
 export async function GET() {
   try {
-    if (!fs.existsSync(DATA_FILE)) {
-      return NextResponse.json([]);
-    }
-    const fileData = fs.readFileSync(DATA_FILE, 'utf8');
-    const responses = JSON.parse(fileData);
-    return NextResponse.json(responses);
+    const { data, error } = await supabase
+      .from('survey_responses')
+      .select('*')
+      .order('submitted_at', { ascending: false });
+
+    if (error) throw error;
+
+    // Map back to the expected format for the admin dashboard
+    const formattedData = data.map((item: any) => ({
+      id: item.id.toString(),
+      submittedAt: item.submitted_at,
+      ...item.responses
+    }));
+
+    return NextResponse.json(formattedData);
   } catch (error) {
+    console.error('Error fetching survey data:', error);
     return NextResponse.json({ error: 'Failed to read data' }, { status: 500 });
   }
 }
