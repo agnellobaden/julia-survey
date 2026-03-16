@@ -3,20 +3,35 @@
 import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { questions } from '@/lib/questions';
-import { Download, Table as TableIcon, LayoutDashboard, Search } from 'lucide-react';
+import { Download, Lock, LogIn } from 'lucide-react';
 
 export default function AdminPage() {
   const [responses, setResponses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    fetch('/api/survey')
-      .then(res => res.json())
-      .then(data => {
-        setResponses(data);
-        setLoading(false);
-      });
-  }, []);
+    if (isAuthenticated) {
+      fetch('/api/survey')
+        .then(res => res.json())
+        .then(data => {
+          setResponses(data);
+          setLoading(false);
+        });
+    }
+  }, [isAuthenticated]);
+
+  const handleLogin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (password === '1234') {
+      setIsAuthenticated(true);
+      setError('');
+    } else {
+      setError('Falsches Passwort.');
+    }
+  };
 
   const exportCSV = () => {
     if (responses.length === 0) return;
@@ -42,6 +57,40 @@ export default function AdminPage() {
     link.download = `umfrage_ergebnisse_${new Date().toISOString().split('T')[0]}.csv`;
     link.click();
   };
+
+  if (!isAuthenticated) {
+    return (
+      <main className="container mx-auto px-4 h-[80vh] flex items-center justify-center">
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="glass-card w-full max-w-md text-center"
+        >
+          <div className="w-16 h-16 bg-brand-500/10 text-brand-400 rounded-2xl flex items-center justify-center mx-auto mb-6">
+            <Lock className="w-8 h-8" />
+          </div>
+          <h1 className="text-2xl font-bold mb-2">Admin Login</h1>
+          <p className="text-white/50 mb-8 text-sm">Bitte gib das Passwort ein, um die Ergebnisse zu sehen.</p>
+          
+          <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Passwort"
+              className="input-field w-full text-center tracking-widest"
+              autoFocus
+            />
+            {error && <p className="text-red-400 text-xs font-medium">{error}</p>}
+            <button type="submit" className="btn-primary w-full flex items-center justify-center gap-2">
+              <LogIn className="w-4 h-4" />
+              Einloggen
+            </button>
+          </form>
+        </motion.div>
+      </main>
+    );
+  }
 
   return (
     <main className="container mx-auto px-4 py-12">
@@ -77,7 +126,6 @@ export default function AdminPage() {
               <p className="text-white/40 text-sm mb-1 uppercase tracking-wider">Gesamtantworten</p>
               <p className="text-4xl font-bold">{responses.length}</p>
             </div>
-            {/* Add more stats here if needed */}
           </div>
 
           <div className="glass overflow-hidden rounded-2xl border border-white/10">
